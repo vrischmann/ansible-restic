@@ -17,7 +17,7 @@
 
 - name: add the timer
   template:
-    src: user/restic-backup.timer.j2
+    src: restic-backup.timer.j2
     dest: "{{ restic_user_home }}/.config/systemd/user/restic-backup-{{ item.name }}.timer"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
@@ -26,7 +26,7 @@
 
 - name: create the environment file
   template:
-    src: user/env.j2
+    src: env.j2
     dest: "{{ restic_user_home }}/.config/restic-backup/{{ item.name }}.env"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
@@ -41,13 +41,9 @@
     group: "{{ restic_user_group }}"
     mode: 0600
 
-- name: merge ssh config
-  set_fact:
-    restic_excludes: "{{ restic_specific_excludes|extend(restic_default_excludes) }}"
-
 - name: create the exclude file
   template:
-    src: user/excludes.j2
+    src: excludes.j2
     dest: "{{ restic_user_home }}/.config/restic-backup/excludes"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
