@@ -1,0 +1,22 @@
+galaxy_info:
+  author: Vincent Rischmann
+  description: Deploy restic backups using systemd services and timers
+
+  license: MIT
+
+  min_ansible_version: 2.9
+
+  platforms:
+  - name: Fedora
+    versions:
+    - all
+
+  - name: Debian
+    versions:
+    - buster
+
+  galaxy_tags:
+    - restic
+    - backup
+
+dependencies: []
