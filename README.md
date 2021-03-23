@@ -1,5 +1,5 @@
-Role Name
-=========
+Restic
+======
 
 Deploy [restic](https://restic.net/) backups using systemd services and timers.
 
