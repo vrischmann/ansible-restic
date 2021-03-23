@@ -1,0 +1,71 @@
+- name: create the config directory
+  file:
+    dest: "{{ restic_user_home }}/.config/restic-backup"
+    owner: "{{ restic_user_name }}"
+    group: "{{ restic_user_group }}"
+    mode: 0700
+    state: directory
+
+- name: add the service
+  template:
+    src: user/restic-backup.service.j2
+    dest: "{{ restic_user_home }}/.config/systemd/user/restic-backup-{{ item.name }}.service"
+    owner: "{{ restic_user_name }}"
+    group: "{{ restic_user_group }}"
+    mode: 0644
+  with_items: "{{ restic_backups }}"
+
+- name: add the timer
+  template:
+    src: user/restic-backup.timer.j2
+    dest: "{{ restic_user_home }}/.config/systemd/user/restic-backup-{{ item.name }}.timer"
+    owner: "{{ restic_user_name }}"
+    group: "{{ restic_user_group }}"
+    mode: 0644
+  with_items: "{{ restic_backups }}"
+
+- name: create the environment file
+  template:
+    src: user/env.j2
+    dest: "{{ restic_user_home }}/.config/restic-backup/{{ item.name }}.env"
+    owner: "{{ restic_user_name }}"
+    group: "{{ restic_user_group }}"
+    mode: 0600
+  with_items: "{{ restic_backups }}"
+
+- name: create the files file
+  template:
+    src: files.j2
+    dest: "{{ restic_user_home }}/.config/restic-backup/files"
+    owner: "{{ restic_user_name }}"
+    group: "{{ restic_user_group }}"
+    mode: 0600
+
+- name: merge ssh config
+  set_fact:
+    restic_excludes: "{{ restic_specific_excludes|extend(restic_default_excludes) }}"
+
+- name: create the exclude file
+  template:
+    src: user/excludes.j2
+    dest: "{{ restic_user_home }}/.config/restic-backup/excludes"
+    owner: "{{ restic_user_name }}"
+    group: "{{ restic_user_group }}"
+    mode: 0600
+
+- name: enable the services
+  systemd:
+    daemon_reload: yes
+    scope: user
+    name: "restic-backup-{{ item.name }}"
+    enabled: yes # NOTE(vincent): do _not_ start the service here or it will just execute the backup !
+  with_items: "{{ restic_backups }}"
+
+- name: enable the service timers
+  systemd:
+    daemon_reload: yes
+    scope: user
+    name: "restic-backup-{{ item.name }}.timer"
+    enabled: yes
+    state: started
+  with_items: "{{ restic_backups }}"

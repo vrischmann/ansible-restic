@@ -1,0 +1,60 @@
+- name: create the config directory
+  file:
+    dest: "{{ restic_conf_directory }}"
+    owner: root
+    group: root
+    mode: 0700
+    state: directory
+
+- name: add the service
+  template:
+    src: server/restic-backup.service.j2
+    dest: /etc/systemd/system/restic-backup.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: add the timer
+  template:
+    src: server/restic-backup.timer.j2
+    dest: /etc/systemd/system/restic-backup.timer
+    owner: root
+    group: root
+    mode: 0644
+
+- name: create the environment file
+  template:
+    src: server/env.j2
+    dest: "{{ restic_conf_directory }}/env"
+    owner: root
+    group: root
+    mode: 0600
+
+- name: create the files file
+  template:
+    src: files.j2
+    dest: "{{ restic_conf_directory }}/files"
+    owner: root
+    group: root
+    mode: 0600
+
+- name: create the excludes file
+  template:
+    src: server/excludes.j2
+    dest: "{{ restic_conf_directory }}/excludes"
+    owner: root
+    group: root
+    mode: 0600
+
+- name: enable the service
+  systemd:
+    daemon_reload: yes
+    name: restic-backup
+    enabled: yes # NOTE(vincent): do _not_ start the service here or it will just execute the backup !
+
+- name: enable the service timers
+  systemd:
+    daemon_reload: yes
+    name: "restic-backup.timer"
+    enabled: yes
+    state: started

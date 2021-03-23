@@ -1,0 +1,15 @@
+[Unit]
+Description=Restic backup
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart={{ restic_binary }} backup \
+    --exclude-caches \
+    --exclude-file %h/.config/restic-backup/excludes \
+    --files-from %h/.config/restic-backup/files
+EnvironmentFile=%h/.config/restic-backup/{{ item.name }}.env
+Nice=19
+
+[Install]
+WantedBy=basic.target

@@ -1,0 +1,3 @@
+{% for v in restic_backup.excludes|default([]) %}
+{{ v }}
+{% endfor %}

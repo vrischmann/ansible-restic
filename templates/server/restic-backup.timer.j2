@@ -1,0 +1,11 @@
+[Unit]
+Description=Restic backup
+After=network.target
+
+[Timer]
+OnCalendar={{ restic_timer_calendar_spec }}
+Persistent=true
+Unit=restic-backup.service
+
+[Install]
+WantedBy=restic-backup.service
