@@ -9,7 +9,7 @@ ExecStart={{ restic_binary }} backup \
     --exclude-file {{ restic_conf_directory }}/excludes \
     --cache-dir {{ restic_cache_directory }} \
     --files-from {{ restic_conf_directory }}/files
-EnvironmentFile={{ restic_conf_directory }}/env
+EnvironmentFile={{ restic_conf_directory }}/{{ item.name }}.env
 
 [Install]
 WantedBy=basic.target

@@ -9,26 +9,29 @@
 - name: add the service
   template:
     src: server/restic-backup.service.j2
-    dest: /etc/systemd/system/restic-backup.service
+    dest: "/etc/systemd/system/restic-backup-{{ item.name }}.service"
     owner: root
     group: root
     mode: 0644
+  with_items: "{{ restic_backups }}"
 
 - name: add the timer
   template:
-    src: server/restic-backup.timer.j2
-    dest: /etc/systemd/system/restic-backup.timer
+    src: restic-backup.timer.j2
+    dest: "/etc/systemd/system/restic-backup-{{ item.name }}.timer"
     owner: root
     group: root
     mode: 0644
+  with_items: "{{ restic_backups }}"
 
 - name: create the environment file
   template:
-    src: server/env.j2
-    dest: "{{ restic_conf_directory }}/env"
+    src: env.j2
+    dest: "{{ restic_conf_directory }}/{{ item.name }}.env"
     owner: root
     group: root
     mode: 0600
+  with_items: "{{ restic_backups }}"
 
 - name: create the files file
   template:
@@ -40,7 +43,7 @@
 
 - name: create the excludes file
   template:
-    src: server/excludes.j2
+    src: excludes.j2
     dest: "{{ restic_conf_directory }}/excludes"
     owner: root
     group: root
@@ -49,12 +52,14 @@
 - name: enable the service
   systemd:
     daemon_reload: yes
-    name: restic-backup
+    name: "restic-backup-{{ item.name }}"
     enabled: yes # NOTE(vincent): do _not_ start the service here or it will just execute the backup !
+  with_items: "{{ restic_backups }}"
 
 - name: enable the service timers
   systemd:
     daemon_reload: yes
-    name: "restic-backup.timer"
+    name: "restic-backup-{{ item.name }}.timer"
     enabled: yes
     state: started
+  with_items: "{{ restic_backups }}"

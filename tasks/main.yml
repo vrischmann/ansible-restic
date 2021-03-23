@@ -1,3 +1,13 @@
+- name: merge excludes
+  set_fact:
+    restic_excludes: "{{ restic_specific_excludes|extend(restic_default_excludes) }}"
+  when: restic_specific_excludes is defined
+
+- name: merge excludes
+  set_fact:
+    restic_excludes: "{{ restic_default_excludes|default([]) }}"
+  when: restic_specific_excludes is not defined
+
 - name: user backup
   import_tasks: user.yml
   when: restic_backup_mode is defined and restic_backup_mode == "user"
