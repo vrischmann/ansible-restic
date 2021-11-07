@@ -22,6 +22,7 @@ You need restic installed and your repositories already initialized.
 | `restic_default_excludes`     | no       | List of directories or files to exclude from backups.
 | `restic_specific_excludes`    | no       | List of directories or files to exclude from backups.
 | `restic_backups`              | yes      | List of backup definitions for restic.
+| `restic_backup_directories`   | yes      | List of directories to include in the backups.
 | `restic_conf_directory`       | no       | Configuration directory (if running in "server" mode).
 
 ## Default and specific excludes
