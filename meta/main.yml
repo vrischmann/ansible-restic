@@ -2,6 +2,9 @@ galaxy_info:
   author: Vincent Rischmann
   description: Deploy restic backups using systemd services and timers
 
+  role_name: restic
+  namespace: vrischmann
+
   license: MIT
 
   min_ansible_version: 2.9
