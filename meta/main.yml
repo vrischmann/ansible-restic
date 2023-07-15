@@ -7,16 +7,16 @@ galaxy_info:
 
   license: MIT
 
-  min_ansible_version: 2.9
+  min_ansible_version: "2.9"
 
   platforms:
-  - name: Fedora
-    versions:
-    - all
+    - name: Fedora
+      versions:
+        - all
 
-  - name: Debian
-    versions:
-    - buster
+    - name: Debian
+      versions:
+        - buster
 
   galaxy_tags:
     - restic

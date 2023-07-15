@@ -1,17 +1,17 @@
-- name: merge excludes
-  set_fact:
-    restic_excludes: "{{ restic_specific_excludes|extend(restic_default_excludes) }}"
+- name: Merge excludes
+  ansible.builtin.set_fact:
+    restic_excludes: "{{ restic_specific_excludes | extend(restic_default_excludes) }}"
   when: restic_specific_excludes is defined
 
-- name: merge excludes
-  set_fact:
-    restic_excludes: "{{ restic_default_excludes|default([]) }}"
+- name: Merge excludes
+  ansible.builtin.set_fact:
+    restic_excludes: "{{ restic_default_excludes | default([]) }}"
   when: restic_specific_excludes is not defined
 
-- name: user backup
-  import_tasks: user.yml
+- name: User backup
+  ansible.builtin.import_tasks: user.yml
   when: restic_backup_mode is defined and restic_backup_mode == "user"
 
-- name: server backup
-  import_tasks: server.yml
+- name: Server backup
+  ansible.builtin.import_tasks: server.yml
   when: restic_backup_mode is defined and restic_backup_mode == "server"

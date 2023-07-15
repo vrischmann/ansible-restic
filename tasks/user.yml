@@ -1,67 +1,67 @@
-- name: create the config directory
-  file:
+- name: Create the config directory
+  ansible.builtin.file:
     dest: "{{ restic_user_home }}/.config/restic-backup"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
-    mode: 0700
+    mode: "0700"
     state: directory
 
-- name: add the service
-  template:
+- name: Add the service
+  ansible.builtin.template:
     src: user/restic-backup.service.j2
     dest: "{{ restic_user_home }}/.config/systemd/user/restic-backup-{{ item.name }}.service"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
-    mode: 0644
+    mode: "0644"
   with_items: "{{ restic_backups }}"
 
-- name: add the timer
-  template:
+- name: Add the timer
+  ansible.builtin.template:
     src: restic-backup.timer.j2
     dest: "{{ restic_user_home }}/.config/systemd/user/restic-backup-{{ item.name }}.timer"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
-    mode: 0644
+    mode: "0644"
   with_items: "{{ restic_backups }}"
 
-- name: create the environment file
-  template:
+- name: Create the environment file
+  ansible.builtin.template:
     src: env.j2
     dest: "{{ restic_user_home }}/.config/restic-backup/{{ item.name }}.env"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
-    mode: 0600
+    mode: "0600"
   with_items: "{{ restic_backups }}"
 
-- name: create the files file
-  template:
+- name: Create the files file
+  ansible.builtin.template:
     src: files.j2
     dest: "{{ restic_user_home }}/.config/restic-backup/files"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
-    mode: 0600
+    mode: "0600"
 
-- name: create the exclude file
-  template:
+- name: Create the exclude file
+  ansible.builtin.template:
     src: excludes.j2
     dest: "{{ restic_user_home }}/.config/restic-backup/excludes"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
-    mode: 0600
+    mode: "0600"
 
-- name: enable the services
-  systemd:
-    daemon_reload: yes
+- name: Enable the services
+  ansible.builtin.systemd:
+    daemon_reload: true
     scope: user
     name: "restic-backup-{{ item.name }}"
-    enabled: yes # NOTE(vincent): do _not_ start the service here or it will just execute the backup !
+    enabled: true # NOTE(vincent): do _not_ start the service here or it will just execute the backup !
   with_items: "{{ restic_backups }}"
 
-- name: enable the service timers
-  systemd:
-    daemon_reload: yes
+- name: Enable the service timers
+  ansible.builtin.systemd:
+    daemon_reload: true
     scope: user
     name: "restic-backup-{{ item.name }}.timer"
-    enabled: yes
+    enabled: true
     state: started
   with_items: "{{ restic_backups }}"
