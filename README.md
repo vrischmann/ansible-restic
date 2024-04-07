@@ -14,7 +14,7 @@ You need restic installed and your repositories already initialized.
 
 | Name                          | Required | Description
 | --------------                | -------- | -----------------------------------
-| `restic_binary`               | yes      | Full path of the restic binary.
+| `restic_binary`               | no       | Full path of the restic binary.
 | `restic_backup_mode`          | yes      | Backup mode (either "user" or "server").
 | `restic_user_home`            | no       | Home directory of the user (if running in "user" mode).
 | `restic_user_name`            | no       | Name of the user (if running in "user" mode).

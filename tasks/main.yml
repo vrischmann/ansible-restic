@@ -8,6 +8,11 @@
     restic_excludes: "{{ restic_default_excludes | default([]) }}"
   when: restic_specific_excludes is not defined
 
+- name: Check if the binary is defined
+  ansible.builtin.set_fact:
+    restic_binary: restic
+  when: restic_binary is not defined
+
 - name: User backup
   ansible.builtin.import_tasks: user.yml
   when: restic_backup_mode is defined and restic_backup_mode == "user"
