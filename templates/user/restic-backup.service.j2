@@ -6,6 +6,7 @@ After=network.target
 Type=oneshot
 Environment=GOMAXPROCS={{ item.gomaxprocs|default(1) }}
 ExecStart={{ restic_binary }} backup \
+    --json \
     --exclude-caches \
     --exclude-file %h/.config/restic-backup/excludes \
     --files-from %h/.config/restic-backup/files
