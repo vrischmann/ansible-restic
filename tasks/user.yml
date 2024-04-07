@@ -36,18 +36,20 @@
 - name: Create the files file
   ansible.builtin.template:
     src: files.j2
-    dest: "{{ restic_user_home }}/.config/restic-backup/files"
+    dest: "{{ restic_user_home }}/.config/restic-backup/{{ item.name }}.files"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
     mode: "0600"
+  with_items: "{{ restic_backups }}"
 
 - name: Create the exclude file
   ansible.builtin.template:
     src: excludes.j2
-    dest: "{{ restic_user_home }}/.config/restic-backup/excludes"
+    dest: "{{ restic_user_home }}/.config/restic-backup/{{ item.name }}.excludes"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
     mode: "0600"
+  with_items: "{{ restic_backups }}"
 
 - name: Enable the services
   ansible.builtin.systemd:

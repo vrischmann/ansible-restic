@@ -8,8 +8,8 @@ Environment=GOMAXPROCS={{ item.gomaxprocs|default(1) }}
 ExecStart={{ restic_binary }} backup \
     --json \
     --exclude-caches \
-    --exclude-file %h/.config/restic-backup/excludes \
-    --files-from %h/.config/restic-backup/files
+    --exclude-file %h/.config/restic-backup/{{ item.name }}.excludes \
+    --files-from %h/.config/restic-backup/{{ item.name }}.files
 EnvironmentFile=%h/.config/restic-backup/{{ item.name }}.env
 Nice=19
 

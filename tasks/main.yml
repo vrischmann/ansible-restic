@@ -1,13 +1,3 @@
-- name: Merge excludes
-  ansible.builtin.set_fact:
-    restic_excludes: "{{ restic_specific_excludes | extend(restic_default_excludes) }}"
-  when: restic_specific_excludes is defined
-
-- name: Merge excludes
-  ansible.builtin.set_fact:
-    restic_excludes: "{{ restic_default_excludes | default([]) }}"
-  when: restic_specific_excludes is not defined
-
 - name: Check if the binary is defined
   ansible.builtin.set_fact:
     restic_binary: restic

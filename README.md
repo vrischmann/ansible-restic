@@ -19,37 +19,9 @@ You need restic installed and your repositories already initialized.
 | `restic_user_home`            | no       | Home directory of the user (if running in "user" mode).
 | `restic_user_name`            | no       | Name of the user (if running in "user" mode).
 | `restic_user_group`           | no       | Group of the user (if running in "user" mode).
-| `restic_default_excludes`     | no       | List of directories or files to exclude from backups.
-| `restic_specific_excludes`    | no       | List of directories or files to exclude from backups.
 | `restic_backups`              | yes      | List of backup definitions for restic.
 | `restic_backup_directories`   | yes      | List of directories to include in the backups.
 | `restic_conf_directory`       | no       | Configuration directory (if running in "server" mode).
-
-## Default and specific excludes
-
-You might have the same basic excludes for a single ansible group, for example I have a "workstation" group
-shared by my desktop and laptop. Each of these also has specific excludes.
-
-To configure this properly, you should define `restic_default_excludes` in your group vars and `restic_specific_excludes` in each host vars.
-
-For example:
-
-`group_vars/workstation`:
-```yaml
-restic_default_excludes:
-- /var/log
-```
-`host_vars/desktop`:
-```yaml
-restic_specific_excludes:
-- /opt/stuff
-- /home/vincent/dont_touch_this
-```
-`host_vars/laptop`:
-```yaml
-restic_specific_excludes:
-- /home/vincent/dont_touch_this_either
-```
 
 ## Backup definition
 
@@ -74,6 +46,10 @@ restic_backups:
       RESTIC_REPOSITORY: "s3:s3.fr-par.scw.cloud/foobar/home"
       RESTIC_PASSWORD: "{{ restic_remote_password }}"
     calendar_spec: "*-*-* *:00/15:00"
+    backup_directories:
+      - /home/vincent
+    excludes:
+      - /home/vincent/tmp
 
   - name: remote-linode
     env:
@@ -82,6 +58,10 @@ restic_backups:
       RESTIC_REPOSITORY: "s3:eu-central-1.linodeobjects.com/foobar/barbaz"
       RESTIC_PASSWORD: "{{ restic_remote_password }}"
     calendar_spec: "*-*-* *:00/15:00"
+    backup_directories:
+      - /data/media
+    excludes:
+      - /data/media/Movies
 ```
 
 # License

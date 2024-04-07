@@ -36,18 +36,20 @@
 - name: Create the files file
   ansible.builtin.template:
     src: files.j2
-    dest: "{{ restic_conf_directory }}/files"
+    dest: "{{ restic_conf_directory }}/{{ item.name }}.files"
     owner: root
     group: root
     mode: "0600"
+  with_items: "{{ restic_backups }}"
 
 - name: Create the excludes file
   ansible.builtin.template:
     src: excludes.j2
-    dest: "{{ restic_conf_directory }}/excludes"
+    dest: "{{ restic_conf_directory }}/{{ item.name }}.excludes"
     owner: root
     group: root
     mode: "0600"
+  with_items: "{{ restic_backups }}"
 
 # NOTE(vincent): do _not_ start the service here or it will just execute the backup !
 

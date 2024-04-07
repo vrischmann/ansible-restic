@@ -8,9 +8,9 @@ Environment=GOMAXPROCS=1
 ExecStart={{ restic_binary }} backup \
     --json \
     --exclude-caches \
-    --exclude-file {{ restic_conf_directory }}/excludes \
+    --exclude-file {{ restic_conf_directory }}/{{ item.name }}.excludes \
     --cache-dir {{ restic_cache_directory }} \
-    --files-from {{ restic_conf_directory }}/files
+    --files-from {{ restic_conf_directory }}/{{ item.name }}.files
 EnvironmentFile={{ restic_conf_directory }}/{{ item.name }}.env
 
 [Install]
