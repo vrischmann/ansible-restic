@@ -20,20 +20,19 @@ You need restic installed and your repositories already initialized.
 | `restic_user_name`            | no       | Name of the user (if running in "user" mode).
 | `restic_user_group`           | no       | Group of the user (if running in "user" mode).
 | `restic_backups`              | yes      | List of backup definitions for restic.
-| `restic_backup_directories`   | yes      | List of directories to include in the backups.
 | `restic_conf_directory`       | no       | Configuration directory (if running in "server" mode).
 
 ## Backup definition
 
-This role assumes that a single host will always backup the same data to 1 or more repositories; for example you could backup
-to Amazon S3, rsync.net, your own SFTP server, etc.
-
-The `restic_backups` list therefore contains N items defining the repositories.
+The `restic_backups` list contains N items defining the backups.
 
 Each backup definition must contain the following information:
 * The name of the repository (used for the systemd services: only use alphanumeric characters)
 * The environment variables for restic to use the repository
 * The calendar spec for the systemd timer.
+* The directories to backup
+
+It can also contain a list of directories to exclude.
 
 For example this defines two repositories:
 
