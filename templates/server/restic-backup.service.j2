@@ -5,12 +5,7 @@ After=network.target
 [Service]
 Type=oneshot
 Environment=GOMAXPROCS=1
-ExecStart={{ restic_binary }} backup \
-    --json \
-    --exclude-caches \
-    --exclude-file {{ restic_conf_directory }}/{{ item.name }}.excludes \
-    --cache-dir {{ restic_cache_directory }} \
-    --files-from {{ restic_conf_directory }}/{{ item.name }}.files
+ExecStart=/usr/local/bin/restic-backup-wrapper.py {{ item.name }} {{ restic_conf_directory }} {{ restic_cache_directory }} {{ restic_binary }}
 EnvironmentFile={{ restic_conf_directory }}/{{ item.name }}.env
 
 [Install]

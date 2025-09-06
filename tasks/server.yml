@@ -51,6 +51,14 @@
     mode: "0600"
   with_items: "{{ restic_backups }}"
 
+- name: Create the backup wrapper script
+  ansible.builtin.copy:
+    src: restic-backup-wrapper.py
+    dest: "/usr/local/bin/restic-backup-wrapper.py"
+    owner: root
+    group: root
+    mode: "0755"
+
 # NOTE(vincent): do _not_ start the service here or it will just execute the backup !
 
 - name: Enable the service
