@@ -9,6 +9,7 @@ import sys
 import subprocess
 import smtplib
 import ssl
+import threading
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
@@ -123,6 +124,17 @@ def get_email_config(env_vars):
     }
 
 
+def stream_output(pipe, stdout_lines, stderr_lines, is_stderr=False):
+    """Stream output from pipe to stdout/stderr and capture lines"""
+    for line in iter(pipe.readline, ''):
+        if is_stderr:
+            print(line, end='', file=sys.stderr)
+            stderr_lines.append(line)
+        else:
+            print(line, end='')
+            stdout_lines.append(line)
+
+
 def run_backup(backup_name, config_dir, cache_dir, restic_binary, env_vars):
     """Execute restic backup and capture output"""
 
@@ -149,11 +161,29 @@ def run_backup(backup_name, config_dir, cache_dir, restic_binary, env_vars):
     print(f"Executing: {' '.join(cmd)}")
 
     try:
-        result = subprocess.run(cmd, env=env, capture_output=True, text=True)
+        # Start subprocess with pipes for streaming
+        process = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-        # Combine stdout and stderr for logging
-        output = result.stdout + result.stderr
-        exit_code = result.returncode
+        # Capture output for notifications while streaming
+        stdout_lines = []
+        stderr_lines = []
+
+        # Start threads to stream stdout and stderr
+        stdout_thread = threading.Thread(target=stream_output, args=(process.stdout, stdout_lines, stderr_lines, False))
+        stderr_thread = threading.Thread(target=stream_output, args=(process.stderr, stdout_lines, stderr_lines, True))
+
+        stdout_thread.start()
+        stderr_thread.start()
+
+        # Wait for process to complete
+        exit_code = process.wait()
+
+        # Wait for output threads to finish
+        stdout_thread.join()
+        stderr_thread.join()
+
+        # Combine captured output for notifications
+        output = ''.join(stdout_lines) + ''.join(stderr_lines)
 
         print(f"Backup completed with exit code: {exit_code}")
         print(f"Backup finished at {datetime.now()}")
