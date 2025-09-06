@@ -87,77 +87,21 @@ def get_email_config(env_vars):
     # Validate required configuration when email notifications are enabled
     errors = []
 
-    # Check RESTIC_EMAIL_TO
-    to_emails = env_vars.get("RESTIC_EMAIL_TO", "").strip()
-    if not to_emails:
-        errors.append(
-            "RESTIC_EMAIL_TO is required when RESTIC_EMAIL_NOTIFICATIONS_ENABLED is true"
-        )
-    else:
-        # Validate email addresses
-        email_list = [email.strip() for email in to_emails.split(",")]
-        for email in email_list:
-            if not email or "@" not in email or "." not in email:
-                errors.append(f"Invalid email address in RESTIC_EMAIL_TO: {email}")
-
-    # Check RESTIC_EMAIL_FROM
-    from_email = env_vars.get("RESTIC_EMAIL_FROM", "").strip()
-    if not from_email:
-        errors.append(
-            "RESTIC_EMAIL_FROM is required when RESTIC_EMAIL_NOTIFICATIONS_ENABLED is true"
-        )
-    elif "@" not in from_email or "." not in from_email:
-        errors.append(f"Invalid email address in RESTIC_EMAIL_FROM: {from_email}")
-
-    # Check RESTIC_EMAIL_SMTP_SERVER
-    smtp_server = env_vars.get("RESTIC_EMAIL_SMTP_SERVER", "").strip()
-    if not smtp_server:
-        errors.append(
-            "RESTIC_EMAIL_SMTP_SERVER is required when RESTIC_EMAIL_NOTIFICATIONS_ENABLED is true"
-        )
-
-    # Check RESTIC_EMAIL_SMTP_PORT
-    smtp_port_str = env_vars.get("RESTIC_EMAIL_SMTP_PORT", "").strip()
-    if not smtp_port_str:
-        errors.append(
-            "RESTIC_EMAIL_SMTP_PORT is required when RESTIC_EMAIL_NOTIFICATIONS_ENABLED is true"
-        )
-    else:
-        try:
-            smtp_port = int(smtp_port_str)
-            if smtp_port < 1 or smtp_port > 65535:
-                errors.append(
-                    f"Invalid SMTP port in RESTIC_EMAIL_SMTP_PORT: {smtp_port}"
-                )
-        except ValueError:
+    def check(name):
+        value = env_vars.get(name, "").strip()
+        if not value:
             errors.append(
-                f"Invalid SMTP port in RESTIC_EMAIL_SMTP_PORT: {smtp_port_str}"
+                f"{name} is required when RESTIC_EMAIL_NOTIFICATIONS_ENABLED is true"
             )
+        return value
 
-    # Check RESTIC_EMAIL_SMTP_USER
-    smtp_user = env_vars.get("RESTIC_EMAIL_SMTP_USER", "").strip()
-    if not smtp_user:
-        errors.append(
-            "RESTIC_EMAIL_SMTP_USER is required when RESTIC_EMAIL_NOTIFICATIONS_ENABLED is true"
-        )
-
-    # Check RESTIC_EMAIL_SMTP_PASSWORD
-    smtp_password = env_vars.get("RESTIC_EMAIL_SMTP_PASSWORD", "").strip()
-    if not smtp_password:
-        errors.append(
-            "RESTIC_EMAIL_SMTP_PASSWORD is required when RESTIC_EMAIL_NOTIFICATIONS_ENABLED is true"
-        )
-
-    # Check RESTIC_EMAIL_SMTP_TLS
-    smtp_tls = env_vars.get("RESTIC_EMAIL_SMTP_TLS", "").strip()
-    if not smtp_tls:
-        errors.append(
-            "RESTIC_EMAIL_SMTP_TLS is required when RESTIC_EMAIL_NOTIFICATIONS_ENABLED is true"
-        )
-    elif smtp_tls.lower() not in ["true", "false"]:
-        errors.append(
-            f"RESTIC_EMAIL_SMTP_TLS must be 'true' or 'false', got: {smtp_tls}"
-        )
+    to_emails = check("RESTIC_EMAIL_TO")
+    from_email = check("RESTIC_EMAIL_FROM")
+    smtp_server = check("RESTIC_EMAIL_SMTP_SERVER")
+    smtp_port = check("RESTIC_EMAIL_SMTP_PORT")
+    smtp_user = check("RESTIC_EMAIL_SMTP_USER")
+    smtp_password = check("RESTIC_EMAIL_SMTP_PASSWORD")
+    smtp_tls = check("RESTIC_EMAIL_SMTP_TLS")
 
     # Fail fast if there are any validation errors
     if errors:
@@ -172,7 +116,7 @@ def get_email_config(env_vars):
         "to_emails": [email.strip() for email in to_emails.split(",")],
         "from_email": from_email,
         "smtp_server": smtp_server,
-        "smtp_port": int(smtp_port_str),
+        "smtp_port": int(smtp_port),
         "smtp_user": smtp_user,
         "smtp_password": smtp_password,
         "use_tls": smtp_tls.lower() == "true",
