@@ -34,6 +34,21 @@ Each backup definition must contain the following information:
 
 It can also contain a list of directories to exclude.
 
+### Email notifications
+
+The role supports email notifications on backup failures. To enable email notifications, add the following environment variables to your backup definition's `env` section:
+
+| Environment Variable | Required | Description | Default |
+| -------------------- | -------- | ----------- | ------- |
+| `RESTIC_EMAIL_NOTIFICATIONS_ENABLED` | no | Enable email notifications (`true`/`false`) | `false` |
+| `RESTIC_EMAIL_TO` | yes (if enabled) | Comma-separated list of recipient email addresses | - |
+| `RESTIC_EMAIL_FROM` | no | Sender email address | `restic-backup@hostname` |
+| `RESTIC_EMAIL_SMTP_SERVER` | no | SMTP server hostname | `localhost` |
+| `RESTIC_EMAIL_SMTP_PORT` | no | SMTP server port | `25` |
+| `RESTIC_EMAIL_SMTP_USER` | no | SMTP authentication username | - |
+| `RESTIC_EMAIL_SMTP_PASSWORD` | no | SMTP authentication password | - |
+| `RESTIC_EMAIL_SMTP_TLS` | no | Use TLS for SMTP connection (`true`/`false`) | `true` |
+
 For example this defines two repositories:
 
 ```yaml
@@ -56,6 +71,15 @@ restic_backups:
       AWS_SECRET_ACCESS_KEY: "{{ restic_linode_aws_secret_access_key }}"
       RESTIC_REPOSITORY: "s3:eu-central-1.linodeobjects.com/foobar/barbaz"
       RESTIC_PASSWORD: "{{ restic_remote_password }}"
+      # Email notifications for this backup
+      RESTIC_EMAIL_NOTIFICATIONS_ENABLED: "true"
+      RESTIC_EMAIL_TO: "admin@example.com,backup@example.com"
+      RESTIC_EMAIL_FROM: "restic-backup@myserver.example.com"
+      RESTIC_EMAIL_SMTP_SERVER: "smtp.gmail.com"
+      RESTIC_EMAIL_SMTP_PORT: "587"
+      RESTIC_EMAIL_SMTP_USER: "backup@example.com"
+      RESTIC_EMAIL_SMTP_PASSWORD: "{{ vault_smtp_password }}"
+      RESTIC_EMAIL_SMTP_TLS: "true"
     calendar_spec: "*-*-* *:00/15:00"
     backup_directories:
       - /data/media

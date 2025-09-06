@@ -99,9 +99,6 @@ def get_email_config(env_vars):
         "smtp_user": env_vars.get("RESTIC_EMAIL_SMTP_USER") or None,
         "smtp_password": env_vars.get("RESTIC_EMAIL_SMTP_PASSWORD") or None,
         "use_tls": env_vars.get("RESTIC_EMAIL_SMTP_TLS", "true").lower() == "true",
-        "subject_prefix": env_vars.get(
-            "RESTIC_EMAIL_SUBJECT_PREFIX", "[RESTIC BACKUP]"
-        ),
     }
 
 
@@ -154,9 +151,7 @@ def send_notification(backup_name, exit_code, output, email_config, env_vars):
         return
 
     hostname = os.uname().nodename
-    subject = (
-        f"{email_config['subject_prefix']} FAILED: Backup '{backup_name}' on {hostname}"
-    )
+    subject = f"FAILED: Backup '{backup_name}' on {hostname}"
 
     body = f"""Restic backup failed on {hostname}
 
