@@ -167,9 +167,7 @@ def run_backup(backup_name, config_dir, cache_dir, restic_binary, env_vars):
 
 
 def send_notification(backup_name, exit_code, output, email_config, env_vars):
-    """Send email notification if backup failed"""
-    if exit_code == 0 or not email_config:
-        return
+    """Send email notification"""
 
     hostname = os.uname().nodename
     subject = f"FAILED: Backup '{backup_name}' on {hostname}"
@@ -185,8 +183,7 @@ Repository: {env_vars.get("RESTIC_REPOSITORY", "Unknown")}
 Backup Log:
 {output}
 
-Please check the system logs for more details:
-journalctl -u restic-backup-{backup_name}.service"""
+Please check the system logs for more details"""
 
     # Send email
     email_sent = send_email(
@@ -230,7 +227,8 @@ def main():
     )
 
     # Send notification if backup failed
-    send_notification(backup_name, exit_code, output, email_config, env_vars)
+    if exit_code != 0 and email_config:
+        send_notification(backup_name, exit_code, output, email_config, env_vars)
 
     # Exit with the backup exit code
     sys.exit(exit_code)
