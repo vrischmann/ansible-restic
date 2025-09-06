@@ -38,16 +38,18 @@ It can also contain a list of directories to exclude.
 
 The role supports email notifications on backup failures. To enable email notifications, add the following environment variables to your backup definition's `env` section:
 
+**Note:** When `RESTIC_EMAIL_NOTIFICATIONS_ENABLED` is set to `true`, the configuration will be validated and the backup will fail fast if required settings are missing or invalid. No default values are used for SMTP configuration when notifications are enabled.
+
 | Environment Variable | Required | Description | Default |
 | -------------------- | -------- | ----------- | ------- |
 | `RESTIC_EMAIL_NOTIFICATIONS_ENABLED` | no | Enable email notifications (`true`/`false`) | `false` |
 | `RESTIC_EMAIL_TO` | yes (if enabled) | Comma-separated list of recipient email addresses | - |
-| `RESTIC_EMAIL_FROM` | no | Sender email address | `restic-backup@hostname` |
-| `RESTIC_EMAIL_SMTP_SERVER` | no | SMTP server hostname | `localhost` |
-| `RESTIC_EMAIL_SMTP_PORT` | no | SMTP server port | `25` |
-| `RESTIC_EMAIL_SMTP_USER` | no | SMTP authentication username | - |
-| `RESTIC_EMAIL_SMTP_PASSWORD` | no | SMTP authentication password | - |
-| `RESTIC_EMAIL_SMTP_TLS` | no | Use TLS for SMTP connection (`true`/`false`) | `true` |
+| `RESTIC_EMAIL_FROM` | yes (if enabled) | Sender email address | - |
+| `RESTIC_EMAIL_SMTP_SERVER` | yes (if enabled) | SMTP server hostname | - |
+| `RESTIC_EMAIL_SMTP_PORT` | yes (if enabled) | SMTP server port | - |
+| `RESTIC_EMAIL_SMTP_USER` | yes (if enabled) | SMTP authentication username | - |
+| `RESTIC_EMAIL_SMTP_PASSWORD` | yes (if enabled) | SMTP authentication password | - |
+| `RESTIC_EMAIL_SMTP_TLS` | yes (if enabled) | Use TLS for SMTP connection (`true`/`false`) | - |
 
 For example this defines two repositories:
 
