@@ -34,11 +34,20 @@ Each backup definition must contain the following information:
 
 It can also contain a list of directories to exclude.
 
-### Email notifications
+It can also contain optional hooks, rendered straight into the systemd unit:
 
-The role supports email notifications on backup failures. To enable email notifications, add the following environment variables to your backup definition's `env` section:
+* `exec_start_pre`: a command (or path to a script) run before the backup. systemd runs it as `ExecStartPre`, so it completes before restic starts, and a non-zero exit aborts the whole backup. Use this to produce files (for example a database dump) that restic then backs up.
+* `exec_stop_post`: a command (or path to a script) run after the backup, regardless of success or failure (systemd `ExecStopPost`). Use this to clean up anything `exec_start_pre` created, so a failed run never leaves a stale artifact behind.
 
-**Note:** When `RESTIC_EMAIL_NOTIFICATIONS_ENABLED` is set to `true`, the configuration will be validated and the backup will fail fast if required settings are missing or invalid. No default values are used for SMTP configuration when notifications are enabled.
+These are generic systemd hooks; the role itself knows nothing about databases. See [Backing up databases](#backing-up-databases) below.
+
+### Failure notifications
+
+The role sends email on backup failures via a systemd `OnFailure=` hook. When a backup unit fails for any reason (a failed `exec_start_pre`, or restic itself exiting non-zero), systemd starts a small `restic-backup-notify@<unit>.service` unit that reads the failed backup's `.env` and emails the unit's recent journal output. This covers both the pre-backup phase and the backup itself.
+
+The notify unit is wired up for every backup unconditionally; whether it actually sends is controlled by the backup's environment. To enable email notifications, add the following environment variables to your backup definition's `env` section:
+
+**Note:** When `RESTIC_EMAIL_NOTIFICATIONS_ENABLED` is set to `true`, the configuration will be validated and the notify unit will fail fast if required settings are missing or invalid. No default values are used for SMTP configuration when notifications are enabled.
 
 | Environment Variable | Required | Description | Default |
 | -------------------- | -------- | ----------- | ------- |
@@ -88,6 +97,64 @@ restic_backups:
     excludes:
       - /data/media/Movies
 ```
+
+# Backing up databases
+
+Databases aren't files on disk, so the role can't point restic at them directly. The pattern is: dump the database to disk in `exec_start_pre`, back up the dump directory like any other path, then clean it up in `exec_stop_post`. Because both hooks live in the same systemd unit, the dump and the backup always run together, fail together, and notify together.
+
+The role owns none of this. Your playbook writes the dump script and references it. Below is a concrete PostgreSQL setup.
+
+## PostgreSQL example
+
+Define a backup that includes the dump directory and runs the dump before each run:
+
+```yaml
+restic_backups:
+  - name: server-data
+    env:
+      RESTIC_REPOSITORY: "s3:.../server-data"
+      RESTIC_PASSWORD: "{{ restic_remote_password }}"
+    calendar_spec: "*-*-* 03:00:00"
+    backup_directories:
+      - /etc
+      - /var/backups/restic-pg/server-data   # written by the dump script
+    exec_start_pre: /usr/local/bin/pg-dump-server-data.sh
+    exec_stop_post: /usr/local/bin/pg-dump-cleanup.sh
+```
+
+Have your playbook drop the dump script in place. Use the directory format (`-Fd`) so restic dedups well: each table becomes its own compressed file, and unchanged tables are byte-identical across runs. Dump globals (roles, tablespaces) once so a restore can recreate users before loading data. In server mode, run the dump as the `postgres` user via `runuser` to get peer auth without any password:
+
+```sh
+#!/bin/sh
+# /usr/local/bin/pg-dump-server-data.sh
+set -eu
+
+DUMP_DIR=/var/backups/restic-pg/server-data
+mkdir -p "$DUMP_DIR"
+
+# Globals (roles, tablespaces) once.
+runuser -u postgres -- pg_dumpall --globals-only \
+  --file="$DUMP_DIR/globals.sql"
+
+# Each database in directory format (good dedup, parallel-friendly).
+for db in appdb metrics; do
+  runuser -u postgres -- pg_dump --format=directory --file="$DUMP_DIR/$db" "$db"
+done
+```
+
+```sh
+#!/bin/sh
+# /usr/local/bin/pg-dump-cleanup.sh
+rm -rf /var/backups/restic-pg/server-data
+```
+
+Things to get right in the script (the role can't help with these):
+
+* **`pg_dump` version**: the client must match the server major version (a newer client against an older server usually works; the reverse warns or fails). Install the matching `postgresql-client`.
+* **Format**: prefer `-Fd` (directory). Plain SQL is large and dedups badly; `-Fc` (custom) is one blob that changes every run.
+* **Globals**: `pg_dump` doesn't capture roles. Run `pg_dumpall --globals-only` alongside the per-database dumps.
+* **Consistency**: each `pg_dump` is a consistent MVCC snapshot of one database and doesn't block writes. It is not a single point-in-time across databases; that needs physical backup (`pg_basebackup`/PITR), which is out of scope here.
+* **Cleanup**: wiping the dump in `exec_stop_post` is fine because every successful backup already captured it in a restic snapshot.
 
 # License
 

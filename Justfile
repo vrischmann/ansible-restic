@@ -13,4 +13,4 @@ dry-run-backup backup_name config_dir="~/.config/restic-backup" cache_dir="~/.ca
     @echo "This would:"
     @echo "1. Load environment from {{config_dir}}/{{backup_name}}.env"
     @echo "2. Execute restic backup with configured settings"
-    @echo "3. Send email notification if backup fails (and email is configured)"
+    @echo "3. Stream restic output to stdout/stderr (the journal, under systemd)"
