@@ -98,15 +98,15 @@ restic_backups:
       - /data/media/Movies
 ```
 
-# Backing up databases
+# Common patterns
 
-Databases aren't files on disk, so the role can't point restic at them directly. The pattern is: dump the database to disk in `exec_start_pre`, back up the dump directory like any other path, then clean it up in `exec_stop_post`. Because both hooks live in the same systemd unit, the dump and the backup always run together, fail together, and notify together.
+## Backing up databases
 
-The role owns none of this. Your playbook writes the dump script and references it. Below is a concrete PostgreSQL setup.
+Databases aren't files on disk, so the role can't point restic at them directly. The pattern is: dump the database to disk in `exec_start_pre`, back up the dump directory like any other path, then clean it up in `exec_stop_post`. Because both hooks live in the same systemd unit, the dump and the backup always run together, fail together, and notify together. The role owns none of this; your playbook writes the dump script and references it.
 
-## PostgreSQL example
+### PostgreSQL example
 
-Define a backup that includes the dump directory and runs the dump before each run:
+A backup definition that includes the dump directory and runs the dump before each run:
 
 ```yaml
 restic_backups:
@@ -122,7 +122,7 @@ restic_backups:
     exec_stop_post: /usr/local/bin/pg-dump-cleanup.sh
 ```
 
-Have your playbook drop the dump script in place. Use the directory format (`-Fd`) so restic dedups well: each table becomes its own compressed file, and unchanged tables are byte-identical across runs. Dump globals (roles, tablespaces) once so a restore can recreate users before loading data. In server mode, run the dump as the `postgres` user via `runuser` to get peer auth without any password:
+Drop the dump script in place with your playbook:
 
 ```sh
 #!/bin/sh
@@ -147,14 +147,6 @@ done
 # /usr/local/bin/pg-dump-cleanup.sh
 rm -rf /var/backups/restic-pg/server-data
 ```
-
-Things to get right in the script (the role can't help with these):
-
-* **`pg_dump` version**: the client must match the server major version (a newer client against an older server usually works; the reverse warns or fails). Install the matching `postgresql-client`.
-* **Format**: prefer `-Fd` (directory). Plain SQL is large and dedups badly; `-Fc` (custom) is one blob that changes every run.
-* **Globals**: `pg_dump` doesn't capture roles. Run `pg_dumpall --globals-only` alongside the per-database dumps.
-* **Consistency**: each `pg_dump` is a consistent MVCC snapshot of one database and doesn't block writes. It is not a single point-in-time across databases; that needs physical backup (`pg_basebackup`/PITR), which is out of scope here.
-* **Cleanup**: wiping the dump in `exec_stop_post` is fine because every successful backup already captured it in a restic snapshot.
 
 # License
 
