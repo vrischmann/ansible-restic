@@ -9,7 +9,12 @@ Environment=GOMAXPROCS=1
 {% if item.exec_start_pre is defined %}
 ExecStartPre={{ item.exec_start_pre }}
 {% endif %}
-ExecStart=/usr/local/bin/restic-backup-wrapper.py {{ item.name }} {{ restic_conf_directory }} {{ restic_cache_directory }} {{ restic_binary }}
+ExecStart={{ restic_binary }} backup \
+    --json \
+    --exclude-caches \
+    --exclude-file {{ restic_conf_directory }}/{{ item.name }}.excludes \
+    --cache-dir {{ restic_cache_directory }} \
+    --files-from {{ restic_conf_directory }}/{{ item.name }}.files
 EnvironmentFile={{ restic_conf_directory }}/{{ item.name }}.env
 {% if item.exec_stop_post is defined %}
 ExecStopPost={{ item.exec_stop_post }}
