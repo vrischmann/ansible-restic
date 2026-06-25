@@ -1,12 +1,24 @@
 [Unit]
 Description=Restic backup ({{ item.name }})
 After=network.target
+OnFailure=restic-backup-notify@%n.service
 
 [Service]
 Type=oneshot
 Environment=GOMAXPROCS=1
-ExecStart=/usr/local/bin/restic-backup-wrapper.py {{ item.name }} {{ restic_conf_directory }} {{ restic_cache_directory }} {{ restic_binary }}
+{% if item.exec_start_pre is defined %}
+ExecStartPre={{ item.exec_start_pre }}
+{% endif %}
+ExecStart={{ restic_binary }} backup \
+    --json \
+    --exclude-caches \
+    --exclude-file {{ restic_conf_directory }}/{{ item.name }}.excludes \
+    --cache-dir {{ restic_cache_directory }} \
+    --files-from {{ restic_conf_directory }}/{{ item.name }}.files
 EnvironmentFile={{ restic_conf_directory }}/{{ item.name }}.env
+{% if item.exec_stop_post is defined %}
+ExecStopPost={{ item.exec_stop_post }}
+{% endif %}
 
 [Install]
 WantedBy=basic.target

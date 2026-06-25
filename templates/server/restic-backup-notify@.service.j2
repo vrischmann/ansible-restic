@@ -1,0 +1,7 @@
+[Unit]
+Description=Restic backup failure notifier (%i)
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/restic-backup-notify.py %i {{ restic_conf_directory }} server

@@ -6,6 +6,14 @@
     mode: "0700"
     state: directory
 
+- name: Add the notify service template
+  ansible.builtin.template:
+    src: server/restic-backup-notify@.service.j2
+    dest: "/etc/systemd/system/restic-backup-notify@.service"
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Add the service
   ansible.builtin.template:
     src: server/restic-backup.service.j2
@@ -51,10 +59,10 @@
     mode: "0600"
   with_items: "{{ restic_backups }}"
 
-- name: Create the backup wrapper script
+- name: Create the backup notify script
   ansible.builtin.copy:
-    src: restic-backup-wrapper.py
-    dest: "/usr/local/bin/restic-backup-wrapper.py"
+    src: restic-backup-notify.py
+    dest: "/usr/local/bin/restic-backup-notify.py"
     owner: root
     group: root
     mode: "0755"
