@@ -7,7 +7,9 @@ OnFailure=restic-backup-notify@%n.service
 Type=oneshot
 Environment=GOMAXPROCS={{ item.gomaxprocs|default(1) }}
 {% if item.exec_start_pre is defined %}
-ExecStartPre={{ item.exec_start_pre }}
+{%   for cmd in (item.exec_start_pre | as_list) %}
+ExecStartPre={{ cmd }}
+{%   endfor %}
 {% endif %}
 ExecStart={{ restic_binary }} backup \
     --json \
@@ -18,7 +20,9 @@ ExecStart={{ restic_binary }} backup \
 EnvironmentFile=%h/.config/restic-backup/{{ item.name }}.env
 Nice=19
 {% if item.exec_stop_post is defined %}
-ExecStopPost={{ item.exec_stop_post }}
+{%   for cmd in (item.exec_stop_post | as_list) %}
+ExecStopPost={{ cmd }}
+{%   endfor %}
 {% endif %}
 
 [Install]

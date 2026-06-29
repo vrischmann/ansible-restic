@@ -55,6 +55,8 @@ It can also contain optional hooks, rendered straight into the systemd unit:
 * `exec_start_pre`: a command (or path to a script) run before the backup. systemd runs it as `ExecStartPre`, so it completes before restic starts, and a non-zero exit aborts the whole backup. Use this to produce files (for example a database dump) that restic then backs up.
 * `exec_stop_post`: a command (or path to a script) run after the backup, regardless of success or failure (systemd `ExecStopPost`). Use this to clean up anything `exec_start_pre` created, so a failed run never leaves a stale artifact behind.
 
+Either field accepts a single command (string) or a list of commands. With a list the role renders one `ExecStartPre=` / `ExecStopPost=` line per item, in order. Use a list when you need several commands on the same hook, for example a cleanup script plus a metric-writer that records the run outcome for monitoring (systemd injects `$SERVICE_RESULT`, `$EXIT_CODE`, and `$EXIT_STATUS` into every `ExecStopPost` command).
+
 These are generic systemd hooks; the role itself knows nothing about databases. See [Backing up databases](#backing-up-databases) below.
 
 ### Failure notifications
