@@ -6,9 +6,25 @@ This role has two modes:
 * `user` which adds user-wide services and timers (for your normal user).
 * `server` which adds system-wide services and timers.
 
+# Installation
+
+Install the role from Ansible Galaxy:
+
+```sh
+ansible-galaxy install vrischmann.restic
+```
+
+Or add it to a `requirements.yml`:
+
+```yaml
+- name: vrischmann.restic
+```
+
 # Requirements
 
-You need restic installed and your repositories already initialized.
+* You need restic installed and your repositories already initialized.
+* Ansible 2.9 or newer (see `meta/main.yml`).
+* A systemd-based host. The role targets Fedora and Debian; other systemd distributions may work but are not tested.
 
 # Role Variables
 
