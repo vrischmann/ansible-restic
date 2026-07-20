@@ -1,5 +1,5 @@
 [Unit]
-Description=Restic backup ({{ item.name }})
+Description=Restic backup ({{ item.unit_name }})
 After=network.target
 OnFailure=restic-backup-notify@%n.service
 
@@ -14,10 +14,10 @@ ExecStartPre={{ cmd }}
 ExecStart={{ restic_binary }} backup \
     --json \
     --exclude-caches \
-    --exclude-file {{ restic_conf_directory }}/{{ item.name }}.excludes \
+    --exclude-file {{ restic_conf_directory }}/{{ item.scope_name }}.excludes \
     --cache-dir {{ restic_cache_directory }} \
-    --files-from {{ restic_conf_directory }}/{{ item.name }}.files
-EnvironmentFile={{ restic_conf_directory }}/{{ item.name }}.env
+    --files-from {{ restic_conf_directory }}/{{ item.scope_name }}.files
+EnvironmentFile={{ restic_conf_directory }}/{{ item.unit_name }}.env
 {% if item.exec_stop_post is defined %}
 {%   for cmd in (item.exec_stop_post | as_list) %}
 ExecStopPost={{ cmd }}

@@ -22,33 +22,38 @@
     group: "{{ restic_user_group }}"
     mode: "0644"
 
-- name: Add the service
+# Per-unit artifacts (service, timer, env): one per scope x target, produced by
+# the flatten_backup_targets filter. A unit carries its own env/calendar but
+# shares the scope's files/excludes (named by scope_name).
+- name: Add the services
   ansible.builtin.template:
     src: user/restic-backup.service.j2
-    dest: "{{ restic_user_home }}/.config/systemd/user/restic-backup-{{ item.name }}.service"
+    dest: "{{ restic_user_home }}/.config/systemd/user/restic-backup-{{ item.unit_name }}.service"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
     mode: "0644"
-  with_items: "{{ restic_backups }}"
+  with_items: "{{ restic_backups | flatten_backup_targets }}"
 
-- name: Add the timer
+- name: Add the timers
   ansible.builtin.template:
     src: restic-backup.timer.j2
-    dest: "{{ restic_user_home }}/.config/systemd/user/restic-backup-{{ item.name }}.timer"
+    dest: "{{ restic_user_home }}/.config/systemd/user/restic-backup-{{ item.unit_name }}.timer"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
     mode: "0644"
-  with_items: "{{ restic_backups }}"
+  with_items: "{{ restic_backups | flatten_backup_targets }}"
 
-- name: Create the environment file
+- name: Create the environment files
   ansible.builtin.template:
     src: env.j2
-    dest: "{{ restic_user_home }}/.config/restic-backup/{{ item.name }}.env"
+    dest: "{{ restic_user_home }}/.config/restic-backup/{{ item.unit_name }}.env"
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
     mode: "0600"
-  with_items: "{{ restic_backups }}"
+  with_items: "{{ restic_backups | flatten_backup_targets }}"
 
+# Per-scope artifacts (files, excludes): authored once per scope and shared by
+# every target of that scope.
 - name: Create the files file
   ansible.builtin.template:
     src: files.j2
@@ -79,15 +84,15 @@
   ansible.builtin.systemd:
     daemon_reload: true
     scope: user
-    name: "restic-backup-{{ item.name }}"
+    name: "restic-backup-{{ item.unit_name }}"
     enabled: true # NOTE(vincent): do _not_ start the service here or it will just execute the backup !
-  with_items: "{{ restic_backups }}"
+  with_items: "{{ restic_backups | flatten_backup_targets }}"
 
 - name: Enable the service timers
   ansible.builtin.systemd:
     daemon_reload: true
     scope: user
-    name: "restic-backup-{{ item.name }}.timer"
+    name: "restic-backup-{{ item.unit_name }}.timer"
     enabled: true
     state: started
-  with_items: "{{ restic_backups }}"
+  with_items: "{{ restic_backups | flatten_backup_targets }}"
