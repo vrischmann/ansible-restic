@@ -5,7 +5,7 @@ After=network.target
 [Timer]
 OnCalendar={{ item.calendar_spec }}
 Persistent=true
-Unit=restic-backup-{{ item.name }}.service
+Unit=restic-backup-{{ item.unit_name }}.service
 
 [Install]
-WantedBy=restic-backup-{{ item.name }}.service
+WantedBy=restic-backup-{{ item.unit_name }}.service
