@@ -50,6 +50,7 @@
     owner: "{{ restic_user_name }}"
     group: "{{ restic_user_group }}"
     mode: "0600"
+  no_log: true
   with_items: "{{ restic_backups | flatten_backup_targets }}"
 
 # Per-scope artifacts (files, excludes): authored once per scope and shared by

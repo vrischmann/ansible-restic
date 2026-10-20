@@ -42,6 +42,7 @@
     owner: root
     group: root
     mode: "0600"
+  no_log: true
   with_items: "{{ restic_backups | flatten_backup_targets }}"
 
 # Per-scope artifacts (files, excludes): authored once per scope and shared by
